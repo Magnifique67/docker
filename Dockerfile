@@ -1,5 +1,5 @@
 # Use the official Maven image to build the application
-FROM maven:3.8.6-jdk-11 AS builder
+FROM maven:3.8.8-eclipse-temurin-17 AS builder
 
 # Set the working directory
 WORKDIR /Advanced-Web-Sorting-Algorithms
@@ -12,8 +12,8 @@ RUN mvn dependency:go-offline
 COPY src /Advanced-Web-Sorting-Algorithms/src
 RUN mvn package -DskipTests
 
-# Use the official OpenJDK image to run the application
-FROM openjdk:11-jre-slim
+# Use the official Eclipse Temurin JRE image to run the application
+FROM eclipse-temurin:17-jre-alpine
 
 # Set the working directory
 WORKDIR /Advanced-Web-Sorting-Algorithms
@@ -23,4 +23,3 @@ COPY --from=builder /Advanced-Web-Sorting-Algorithms/target/Advanced-Web-Sorting
 
 # Specify the command to run the application
 ENTRYPOINT ["java", "-jar", "/Advanced-Web-Sorting-Algorithms/Advanced-Web-Sorting-Algorithms-0.0.1-SNAPSHOT.jar"]
-
