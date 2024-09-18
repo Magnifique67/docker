@@ -1,0 +1,63 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = 'kety016/sortingalgorithms:latest'
+        REGISTRY_CREDENTIALS_ID = 'dockerhub-credentials-id'
+        DEPLOY_SERVER = 'user@server'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout code from SCM
+                checkout([$class: 'GitSCM',
+                    branches: [[name: '*/main']], // Change 'main' to your branch
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [],
+                    userRemoteConfigs: [[url: 'https://github.com/username/repository.git']]
+                ])
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    // Build the Java application using Maven
+                    sh 'mvn clean package'
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    // Run tests
+                    sh 'mvn test'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    // Pull and run the Docker image on the deployment server
+                    sh "ssh ${DEPLOY_SERVER} 'docker pull ${DOCKER_IMAGE} && docker run -d ${DOCKER_IMAGE}'"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Actions that should be performed after all stages
+            cleanWs() // Clean workspace
+        }
+        success {
+            echo 'Pipeline succeeded!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+    }
+}
