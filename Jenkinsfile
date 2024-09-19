@@ -7,6 +7,8 @@ pipeline {
         DOCKER_HOST = 'tcp://172.31.26.63:8081' // Docker server IP and port
         GIT_REPO_URL = 'https://github.com/Magnifique67/docker.git'
         GIT_BRANCH = 'main' // Change 'main' to your branch if different
+        DEPLOY_ENV = 'blue' // Change to 'green' for blue-green deployment
+        CANARY_PERCENTAGE = 10 // Percentage for canary deployment
     }
 
     stages {
@@ -86,16 +88,30 @@ pipeline {
                                 echo "Pushing Docker image ${DOCKER_IMAGE}..."
                                 docker push ${DOCKER_IMAGE}
 
-                                # Stop and remove any existing container
-                                echo "Stopping and removing existing container (if exists)..."
-                                docker stop my_container || true
-                                docker rm my_container || true
+                                # Deployment Strategy - Blue-Green Deployment
+                                if [ "${DEPLOY_ENV}" = "blue" ] || [ "${DEPLOY_ENV}" = "green" ]; then
+                                    echo "Deploying using Blue-Green strategy..."
+                                    # Stop and remove the existing container in the target environment
+                                    echo "Stopping and removing existing container (if exists)..."
+                                    docker stop my_container_${DEPLOY_ENV} || true
+                                    docker rm my_container_${DEPLOY_ENV} || true
 
-                                # Run the new Docker container
-                                echo "Running new Docker container..."
-                                docker run -d --name my_container ${DOCKER_IMAGE}
+                                    # Run the new Docker container in the target environment
+                                    echo "Running new Docker container..."
+                                    docker run -d --name my_container_${DEPLOY_ENV} ${DOCKER_IMAGE}
 
-                                echo "Deployment complete."
+                                    echo "Deployment complete."
+                                elif [ "${CANARY_PERCENTAGE}" -gt 0 ]; then
+                                    echo "Deploying using Canary strategy..."
+                                    # Example canary deployment steps (customize as needed)
+                                    echo "Running canary deployment with ${CANARY_PERCENTAGE}%..."
+                                    # Add your canary deployment logic here
+                                    # For example, you might deploy to a subset of servers or instances
+
+                                    echo "Canary deployment complete."
+                                else
+                                    error "Invalid deployment strategy specified."
+                                fi
                                 '''
                             }
                         }
