@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: advanced-sorting-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: advanced-sorting
+  template:
+    metadata:
+      labels:
+        app: advanced-sorting
+    spec:
+      containers:
+        - name: sorting-app-container
+          image: kety016/sortinglab:latest
+          ports:
+            - containerPort: 8080
